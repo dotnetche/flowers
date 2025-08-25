@@ -8,7 +8,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { PRODUCTS } from '@/lib/data';
 import { formatPrice } from '@/lib/utils';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { ShoppingBag, Heart, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
 
 export default function ProductPage() {

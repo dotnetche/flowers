@@ -4,7 +4,7 @@ import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { formatPrice } from '@/lib/utils';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 
 interface ProductCardProps {
   product: Product;
@@ -19,7 +19,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+    <div className="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
       <Link href={`/products/${product.id}`}>
         <div className="aspect-square relative overflow-hidden bg-gray-50">
           <Image
@@ -41,9 +41,9 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-rose-600 transition-colors line-clamp-2">
+          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-rose-600 transition-colors line-clamp-2 min-h-[3rem]">
             {product.name}
           </h3>
         </Link>
@@ -68,14 +68,16 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
 
-        <Button
-          onClick={handleAddToCart}
-          className="w-full"
-          size="sm"
-        >
-          <ShoppingBag className="w-4 h-4 mr-2" />
-          Добави в количката
-        </Button>
+        <div className="mt-auto">
+          <Button
+            onClick={handleAddToCart}
+            className="w-full"
+            size="sm"
+          >
+            <ShoppingBag className="w-4 h-4 mr-2" />
+            Добави в количката
+          </Button>
+        </div>
       </div>
     </div>
   );

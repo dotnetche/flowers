@@ -1,19 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/Button';
 import { PRODUCTS, CATEGORIES, COLORS, STYLES } from '@/lib/data';
 import { FilterOptions } from '@/types';
-import { Filter, Grid, List } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { Filter, Grid, List, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
-export default function CatalogPage() {
-  const searchParams = useSearchParams();
-  const searchQuery = searchParams.get('search') || '';
-  
+export default function CategoryPage() {
+  const params = useParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -24,17 +23,32 @@ export default function CatalogPage() {
     inStockOnly: false
   });
 
-  const filteredProducts = PRODUCTS.filter(product => {
-    // Search filter
-    if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !product.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !product.category.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    if (filters.categories.length > 0 && !filters.categories.includes(product.category.id)) {
-      return false;
-    }
+  const category = CATEGORIES.find(cat => cat.slug === params.slug);
+  
+  if (!category) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Категорията не е намерена</h1>
+            <p className="text-gray-600 mb-8">Моля, проверете URL адреса или се върнете към категориите.</p>
+            <Link href="/categories">
+              <Button>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Към категориите
+              </Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const categoryProducts = PRODUCTS.filter(product => product.category.id === category.id);
+
+  const filteredProducts = categoryProducts.filter(product => {
     if (filters.colors.length > 0 && !product.colors.some(color => filters.colors.includes(color.id))) {
       return false;
     }
@@ -50,11 +64,7 @@ export default function CatalogPage() {
     return true;
   });
 
-  const handleFilterChange = (key: keyof FilterOptions, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  const toggleArrayFilter = (key: 'categories' | 'colors' | 'styles', value: string) => {
+  const toggleArrayFilter = (key: 'colors' | 'styles', value: string) => {
     setFilters(prev => ({
       ...prev,
       [key]: prev[key].includes(value)
@@ -63,19 +73,32 @@ export default function CatalogPage() {
     }));
   };
 
+  const handleFilterChange = (key: keyof FilterOptions, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Breadcrumb */}
+        <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
+          <Link href="/" className="hover:text-rose-600">Начало</Link>
+          <span>/</span>
+          <Link href="/categories" className="hover:text-rose-600">Категории</Link>
+          <span>/</span>
+          <span className="text-gray-900">{category.name}</span>
+        </nav>
+
+        {/* Category Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            {searchQuery ? `Резултати за "${searchQuery}"` : 'Каталог продукти'}
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{category.name}</h1>
+          <p className="text-lg text-gray-600 mb-6">{category.description}</p>
+          
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <p className="text-gray-600">
-              Намерени {filteredProducts.length} от {PRODUCTS.length} продукта
+              Намерени {filteredProducts.length} от {categoryProducts.length} продукта
             </p>
             
             <div className="flex items-center space-x-4">
@@ -115,24 +138,6 @@ export default function CatalogPage() {
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-4">Филтри</h3>
               
-              {/* Categories */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-700 mb-3">Категории</h4>
-                <div className="space-y-2">
-                  {CATEGORIES.map(category => (
-                    <label key={category.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.categories.includes(category.id)}
-                        onChange={() => toggleArrayFilter('categories', category.id)}
-                        className="rounded border-gray-300 text-rose-600 focus:ring-rose-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-600">{category.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* Colors */}
               <div className="mb-6">
                 <h4 className="font-medium text-gray-700 mb-3">Цветове</h4>
@@ -192,12 +197,20 @@ export default function CatalogPage() {
           <div className="flex-1">
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
-                  {searchQuery 
-                    ? `Няма намерени продукти за "${searchQuery}"`
-                    : 'Няма намерени продукти с избраните филтри.'
-                  }
-                </p>
+                <p className="text-gray-500 text-lg">Няма намерени продукти с избраните филтри.</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => setFilters({
+                    categories: [],
+                    colors: [],
+                    styles: [],
+                    priceRange: [0, 100],
+                    inStockOnly: false
+                  })}
+                >
+                  Изчисти филтрите
+                </Button>
               </div>
             ) : (
               <div className={`grid gap-6 ${

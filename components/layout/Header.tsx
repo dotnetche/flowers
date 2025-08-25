@@ -1,12 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, Menu, X, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
+import { SearchBar } from './SearchBar';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { cart } = useCart();
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+      }
+    };
+
+    if (isSearchOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isSearchOpen]);
 
   const navigation = [
     { name: 'Начало', href: '/' },
@@ -43,7 +65,12 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="hidden sm:flex">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hidden sm:flex"
+              onClick={() => setIsSearchOpen(true)}
+            >
               <Search className="w-4 h-4" />
             </Button>
             
@@ -92,6 +119,8 @@ export function Header() {
           </div>
         )}
       </div>
+
+      <SearchBar isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }
