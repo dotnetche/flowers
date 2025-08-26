@@ -29,7 +29,9 @@ export default function CartPage() {
             </Link>
           </div>
         </main>
+        <div className='absolute w-full bottom-0'>
         <Footer />
+        </div>
       </div>
     );
   }
